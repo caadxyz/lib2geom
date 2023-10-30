@@ -1,9 +1,9 @@
 add_subdirectory(2geom)
 add_subdirectory(performance-tests EXCLUDE_FROM_ALL)
-if(GTK3_FOUND)
+if(GTK4_FOUND)
   add_subdirectory(toys EXCLUDE_FROM_ALL)
 else()
-  message("Not building toys as they require GTK3.")
+  message("Not building toys as they require GTK4.")
 endif()
 
 add_subdirectory(cython EXCLUDE_FROM_ALL)

@@ -39,15 +39,15 @@ self-intersections-test
 
 foreach(source ${2GEOM_GTESTS_SRC})
 	add_executable(${source} ${source}.cpp)
-	target_include_directories(${source} PRIVATE ${GSL_INCLUDE_DIRS} ${GTK3_INCLUDE_DIRS})
-	target_link_libraries(${source} 2geom GTest::Main ${GSL_LIBRARIES} ${GTK3_LIBRARIES})
+	target_include_directories(${source} PRIVATE ${GSL_INCLUDE_DIRS} ${GTK4_INCLUDE_DIRS})
+	target_link_libraries(${source} 2geom GTest::Main ${GSL_LIBRARIES} ${GTK4_LIBRARIES})
 	add_test(NAME ${source} COMMAND ${source})
 endforeach()
 
 foreach(source ${2GEOM_TESTS_SRC})
     add_executable(${source} ${source}.cpp)
-    target_include_directories(${source} PRIVATE ${GSL_INCLUDE_DIRS} ${GTK3_INCLUDE_DIRS})
-    target_link_libraries(${source} 2geom GTest::GTest ${GSL_LIBRARIES} ${GTK3_LIBRARIES})
+    target_include_directories(${source} PRIVATE ${GSL_INCLUDE_DIRS} ${GTK4_INCLUDE_DIRS})
+    target_link_libraries(${source} 2geom GTest::GTest ${GSL_LIBRARIES} ${GTK4_LIBRARIES})
     add_test(NAME ${source} COMMAND ${source})
 endforeach(source)
 
