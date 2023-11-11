@@ -160,14 +160,17 @@ class Box3d: public Toy {
         togs.emplace_back("S", true);
         handles.push_back(&hand);
     }
-    void key_hit(GdkEventKey *e) override {
-        if(e->keyval == 'c') togs[0].set(1); else
-        if(e->keyval == 's') togs[0].set(0);
+    void key_hit(unsigned keyval, unsigned modifiers) override {
+        if (keyval == 'c') {
+            togs[0].set(1);
+        } else if (keyval == 's') {
+            togs[0].set(0);
+        }
         redraw();
     }
-    void mouse_pressed(GdkEventButton* e) override {
-        toggle_events(togs, e);
-        Toy::mouse_pressed(e);
+    void mouse_pressed(Geom::Point const &pos, unsigned button, unsigned modifiers) override {
+        toggle_events(togs, pos, button);
+        Toy::mouse_pressed(pos, button, modifiers);
     }
 };
 

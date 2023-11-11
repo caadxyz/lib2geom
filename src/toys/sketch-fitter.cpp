@@ -724,32 +724,33 @@ public:
     vector<Point> improved_mouses;
     Piecewise<D2<SBasis > > stroke;
     
-    void mouse_pressed(GdkEventButton* e) override {
-        //toggle_events(toggles, e);
-	Toy::mouse_pressed(e);
+    void mouse_pressed(Geom::Point const &pos, unsigned button, unsigned modifiers) override {
+        //toggle_events(toggles, pos, button);
+	Toy::mouse_pressed(pos, button, modifiers);
 	if(!selected) {
 	    mouse_drag = 1;
-            if (!(e->state & (GDK_SHIFT_MASK))){
+            if (!(modifiers & (GDK_SHIFT_MASK))){
                 mouses.clear();
             }
 	}
     }
 
-    void mouse_moved(GdkEventMotion* e) override {
-	if(mouse_drag) {
-	    mouses.emplace_back(e->x, e->y);
-	    redraw();
-	} else {
-	    Toy::mouse_moved(e);
-	}
+    void mouse_moved(Geom::Point const &pos, unsigned modifiers) override
+    {
+        if (mouse_drag) {
+            mouses.emplace_back(pos);
+            redraw();
+        } else {
+            Toy::mouse_moved(pos, modifiers);
+        }
     }
 
-    void mouse_released(GdkEventButton* e) override {
+    void mouse_released(Geom::Point const &pos, unsigned button, unsigned modifiers) override {
         mouse_drag = 0;
         if(!mouses.empty()) {            
             (this->*fit_f)();
         }
-        Toy::mouse_released(e);
+        Toy::mouse_released(pos, button, modifiers);
     }
 
     void init_menu()
@@ -784,9 +785,9 @@ public:
         }
     }
 
-    void key_hit(GdkEventKey *e) override
+    void key_hit(unsigned keyval, unsigned modifiers) override
     {
-        char choice = std::toupper(e->keyval);
+        char choice = std::toupper(keyval);
         switch ( choice )
         {
             case 'A':

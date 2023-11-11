@@ -1067,16 +1067,16 @@ class PointToBezierTester: public Toy {
     }
   
 public:
-    void key_hit(GdkEventKey *e) override {
-        if(e->keyval == 's') toggles[0].toggle();
+    void key_hit(unsigned keyval, unsigned modifiers) override {
+        if(keyval == 's') toggles[0].toggle();
         redraw();
     }
     vector<Point> mouses;
     int mouse_drag;
     
-    void mouse_pressed(GdkEventButton* e) override {
-        toggle_events(toggles, e);
-        Toy::mouse_pressed(e);
+    void mouse_pressed(Geom::Point const &pos, unsigned button, unsigned modifiers) override {
+        toggle_events(toggles, pos, button);
+        Toy::mouse_pressed(pos, button, modifiers);
         if(!selected) {
             mouse_drag = 1;
             mouses.clear();
@@ -1084,16 +1084,16 @@ public:
     }
     
     
-    void mouse_moved(GdkEventMotion* e) override {
+    void mouse_moved(Geom::Point const &pos, unsigned modifiers) override {
         if(mouse_drag) {
-            mouses.emplace_back(e->x, e->y);
+            mouses.emplace_back(pos);
             redraw();
         } else {
-            Toy::mouse_moved(e);
+            Toy::mouse_moved(pos, modifiers);
         }
     }
 
-    void mouse_released(GdkEventButton* e) override {
+    void mouse_released(Geom::Point const &pos, unsigned button, unsigned modifiers) override {
         mouse_drag = 0;
         stroke.clear();
         stroke.push_cut(0);
@@ -1102,7 +1102,7 @@ public:
             pth.append(QuadraticBezier(mouses[i-2], mouses[i-1], mouses[i]));
         }
         stroke = pth.toPwSb();
-        Toy::mouse_released(e);
+        Toy::mouse_released(pos, button, modifiers);
     }
   
     PointToBezierTester() {

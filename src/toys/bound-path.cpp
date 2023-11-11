@@ -116,9 +116,8 @@ class BoundsPath : public Toy
     }
     
     
-    void mouse_pressed(GdkEventButton* e) override
+    void mouse_pressed(Geom::Point const &pos, unsigned button, unsigned modifiers) override
     {
-        Point pos(e->x, e->y);
         double d, t;
         double dist = 1e10;
         Rect bound;
@@ -202,9 +201,9 @@ class BoundsPath : public Toy
                     }                    
                 }
             }
-        }           
+        }
 
-        Toy::mouse_pressed(e);
+        Toy::mouse_pressed(pos, button, modifiers);
     }
  
   public:

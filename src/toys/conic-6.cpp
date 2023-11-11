@@ -151,9 +151,9 @@ class Conic6: public Toy {
     std::vector<Slider> sliders;
     Point    mouse_sampler;
 
-    void mouse_moved(GdkEventMotion* e) override {
-        mouse_sampler = Point(e->x, e->y);
-        Toy::mouse_moved(e);
+    void mouse_moved(Geom::Point const &pos, unsigned modifiers) override {
+        mouse_sampler = pos;
+        Toy::mouse_moved(pos, modifiers);
     }
     
     void draw(cairo_t *cr, std::ostringstream *notify, int width, int height, bool save, std::ostringstream *timer_stream) override {

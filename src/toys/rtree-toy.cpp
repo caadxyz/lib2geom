@@ -286,7 +286,7 @@ class RTreeToy: public Toy
 
     void key_hit( GdkEventKey *e ) override
     {
-        char choice = std::toupper( e->keyval );
+        char choice = std::toupper( keyval );
         switch ( choice )
         {
             case 'I':

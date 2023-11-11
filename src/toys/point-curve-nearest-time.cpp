@@ -290,9 +290,9 @@ private:
     	Toy::draw(cr, notify, width, height, save,timer_stream);
     }
 
-    void key_hit(GdkEventKey *e) override
+    void key_hit(unsigned keyval, unsigned modifiers) override
     {
-    	choice = e->keyval;
+    	choice = keyval;
     	switch ( choice )
     	{
             case '1':
@@ -333,10 +333,10 @@ private:
     	redraw();
     }
 
-    void mouse_pressed(GdkEventButton* e) override
+    void mouse_pressed(Geom::Point const &pos, unsigned button, unsigned modifiers) override
     {
-        toggle_events(toggles, e);
-        Toy::mouse_pressed(e);
+        toggle_events(toggles, pos, button);
+        Toy::mouse_pressed(pos, button, modifiers);
     }
 
 public:

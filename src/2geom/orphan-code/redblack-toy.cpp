@@ -114,9 +114,9 @@ class RedBlackToy: public Toy
 		help_counter=0;
     }        
     
-    void mouse_moved(GdkEventMotion* e){
+    void mouse_moved(Geom::Point const &pos, unsigned modifiers){
 		if( !( alter_existing_rect && mode == 1 ) ){
-			Toy::mouse_moved(e);
+			Toy::mouse_moved(pos, modifiers);
 		}
 
 		if(add_new_rect){
@@ -124,8 +124,8 @@ class RedBlackToy: public Toy
 		}
 	}
 
-    void mouse_pressed(GdkEventButton* e) {
-		Toy::mouse_pressed(e);
+    void mouse_pressed(Geom::Point const &pos, unsigned button, unsigned modifiers) {
+		Toy::mouse_pressed(pos, button, modifiers);
 		if(e->button == 1){		// left mouse button
 			if( mode == 0 ){	// mode: insert / alter
 				if(!selected) {
@@ -160,8 +160,8 @@ class RedBlackToy: public Toy
 		}
     }
 
-    virtual void mouse_released(GdkEventButton* e) {
-		Toy::mouse_released(e);
+    virtual void mouse_released(Geom::Point const &pos, unsigned button, unsigned modifiers) {
+		Toy::mouse_released(pos, button, modifiers);
 		if( e->button == 1 ) { 		//left mouse button
 			if( mode == 0) {	// mode: insert / alter
 				if( add_new_rect ){
@@ -214,9 +214,9 @@ class RedBlackToy: public Toy
     }
 
 
-    void key_hit(GdkEventKey *e)
+    void key_hit(unsigned keyval, unsigned modifiers)
     {
-        char choice = std::toupper(e->keyval);
+        char choice = std::toupper(keyval);
         switch ( choice )
         {
             case 'A':

@@ -126,14 +126,20 @@ class InnerProductClip: public Toy {
         
         Toy::draw(cr, notify, width, height, save,timer_stream);
     }
-    void key_hit(GdkEventKey *e) override {
-        if(e->keyval == 's') togs[1].toggle(); else
-        if(e->keyval == 'c') togs[0].toggle();
+
+    void key_hit(unsigned keyval, unsigned modifiers) override
+    {
+        if (keyval == 's') {
+            togs[1].toggle();
+        } else if (keyval == 'c') {
+            togs[0].toggle();
+        }
         redraw();
     }
-    void mouse_pressed(GdkEventButton* e) override {
-        toggle_events(togs, e);
-        Toy::mouse_pressed(e);
+
+    void mouse_pressed(Geom::Point const &pos, unsigned button, unsigned modifiers) override {
+        toggle_events(togs, pos, button);
+        Toy::mouse_pressed(pos, button, modifiers);
     }
     void first_time(int argc, char** argv) override {
         const char *path_a_name="star.svgd";

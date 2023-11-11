@@ -261,51 +261,45 @@ class KinematicTemplatesToy : public Toy {
         dragging_center = false;
     }
 
-    void mouse_pressed(GdkEventButton *e) override {
-        Point at(e->x, e->y);
-
-        if(L2(at - p1.pos) < 5) {
+    void mouse_pressed(Geom::Point const &pos, unsigned button, unsigned modifiers) override
+    {
+        if (L2(pos - p1.pos) < 5) {
             dragging_center = true;
-        } else {
-            if(e->button == 1) {
-                vector<Point> *vec = new vector<Point>;
-                vec->clear();
-                vec->push_back(at);
-                last_pushed = at;
-                pts.push_back(vec);
-            }
+        } else if (button == 1) {
+            auto vec = new vector<Point>;
+            vec->clear();
+            vec->push_back(pos);
+            last_pushed = pos;
+            pts.push_back(vec);
         }
 
-        Toy::mouse_pressed(e);
+        Toy::mouse_pressed(pos, button, modifiers);
     }
 
-    void mouse_released(GdkEventButton */*e*/) override {
+    void mouse_released(Geom::Point const &pos, unsigned button, unsigned modifiers) override {
         dragging_center = false;
     }
 
-    void mouse_moved(GdkEventMotion* e) override {
+    void mouse_moved(Geom::Point const &pos, unsigned modifiers) override
+    {
         if (!dragging_center) {
-            Point at(e->x, e->y);
-
-            Point delta = at - cur;
-            //cout << "Mouse moved to: " << at << " (difference: " << delta << ")" << endl;
-            if(e->state & GDK_BUTTON1_MASK) {
-                Point new_pt = cur_kin->next_point(last_pushed, delta);
-
+            if (modifiers & GDK_BUTTON1_MASK) {
+                auto delta = pos - cur;
+                auto new_pt = cur_kin->next_point(last_pushed, delta);
                 pts.back()->push_back(new_pt);
                 last_pushed = new_pt;
             }
-            cur = at;
+            cur = pos;
         } else {
             cur_kin->set_center(p1.pos);
         }
 
-        Toy::mouse_moved(e);
+        Toy::mouse_moved(pos, modifiers);
     }
 
-    void key_hit(GdkEventKey *e) override
+    void key_hit(unsigned keyval, unsigned modifiers) override
     {
-        char choice = std::toupper(e->keyval);
+        char choice = std::toupper(keyval);
         // No need to copy and paste code
         if(choice >= 'A' and choice < 'A' + TOTAL_ITEMS) {
             cur_kin = kin[choice - 'A'];

@@ -71,17 +71,17 @@ class Squiggles: public Toy {
     double tot_length;
     int mode; //0=set curvature, 1=set curv.+rotation, 2=translate, 3=slide time.
 
-    void mouse_moved(GdkEventMotion* e) override{
+    void mouse_moved(Geom::Point const &pos, unsigned modifiers) override{
         mode = 0;
-        if((e->state & (GDK_SHIFT_MASK)) && 
-           (e->state & (GDK_CONTROL_MASK))) {
+        if((modifiers & (GDK_SHIFT_MASK)) && 
+           (modifiers & (GDK_CONTROL_MASK))) {
             mode = 3;
-        }else if(e->state & (GDK_CONTROL_MASK)) {
+        }else if(modifiers & (GDK_CONTROL_MASK)) {
             mode = 1;
-        }else if(e->state & (GDK_SHIFT_MASK)) {
+        }else if(modifiers & (GDK_SHIFT_MASK)) {
             mode = 2;
         }
-        Toy::mouse_moved(e);
+        Toy::mouse_moved(pos, modifiers);
     }
 
 

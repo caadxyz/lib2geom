@@ -178,14 +178,13 @@ public:
         Toy::draw(cr, notify, width, height, save, timer_stream);
     }
 
-    void key_hit(GdkEventKey *ev) override
+    void key_hit(unsigned keyval, unsigned modifiers) override
     {
-        if (ev->keyval == GDK_KEY_space) {
+        if (keyval == GDK_KEY_space) {
             print_path_d();
-        } else if ((ev->keyval == GDK_KEY_V || ev->keyval == GDK_KEY_v) && (ev->state & GDK_CONTROL_MASK)) {
+        } else if ((keyval == GDK_KEY_V || keyval == GDK_KEY_v) && (modifiers & GDK_CONTROL_MASK)) {
             paste_d();
         }
-
     }
 
 private:
@@ -196,25 +195,26 @@ private:
 
     void paste_d()
     {
-        auto *clipboard = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
-        auto *text = gtk_clipboard_wait_for_text(clipboard);
-        if (!text) {
-            return;
-        }
-        PathVector pv;
-        try {
-            pv = parse_svg_path(text);
-        } catch (SVGPathParseError &error) {
-            std::cerr << "Error pasting path d: " << error.what() << std::endl;
-            return;
-        }
-        if (pv.empty()) {
-            return;
-        }
-        Item paste_item{RED}; // TODO: cycle through a color palette.
-        paste_item.setPath(std::move(pv[0]));
-        items.push_back(paste_item);
-        redraw();
+        get_clipboard_text([this] (char const *text) {
+            if (!text) {
+                return;
+            }
+
+            PathVector pv;
+            try {
+                pv = parse_svg_path(text);
+            } catch (SVGPathParseError const &error) {
+                std::cerr << "Error pasting path d: " << error.what() << std::endl;
+                return;
+            }
+            if (pv.empty()) {
+                return;
+            }
+            Item paste_item{RED}; // TODO: cycle through a color palette.
+            paste_item.setPath(std::move(pv[0]));
+            items.push_back(paste_item);
+            redraw();
+        });
     }
 
     void print_path_d()

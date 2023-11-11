@@ -37,38 +37,38 @@ class DrawToy: public Toy {
         cairo_path(cr, pb);
         cairo_stroke(cr);
     }
-    void mouse_pressed(GdkEventButton* e) override {
-        selected = NULL;
-        Geom::Point mouse(e->x, e->y);
+    void mouse_pressed(Geom::Point const &pos, unsigned button, unsigned modifiers) override
+    {
+        selected = nullptr;
         int close_i = 0;
         float close_d = 1000;
         for(unsigned i = 0; i < hand.pts.size(); i+=1) {
-            if(Geom::distance(mouse, hand.pts[i]) < close_d) {
-                close_d = Geom::distance(mouse, hand.pts[i]);
+            if (Geom::distance(pos, hand.pts[i]) < close_d) {
+                close_d = Geom::distance(pos, hand.pts[i]);
                 close_i = i;
             }
         }
-        if(close_d < 5) {
-             if(e->button==3)
+        if (close_d < 5) {
+             if (button==3)
                  hand.pts.erase(hand.pts.begin() + close_i);
              else {
                  selected = &hand;
                  hit_data = (void*)(intptr_t)close_i;
              }
         } else {
-             if(e->button==1) {
-                 if(hand.pts.size() > 0) {
-                     if(hand.pts.size() == 1) {
-                         hand.pts.push_back((hand.pts[0] * 2 + mouse) / 3);
-                         hand.pts.push_back((hand.pts[0] + mouse * 2) / 3);
+             if (button == 1) {
+                 if (hand.pts.size() > 0) {
+                     if (hand.pts.size() == 1) {
+                         hand.pts.push_back((hand.pts[0] * 2 + pos) / 3);
+                         hand.pts.push_back((hand.pts[0] + pos * 2) / 3);
                      } else {
                          Geom::Point prev = hand.pts[hand.pts.size() - 1];
                          Geom::Point curve = prev - hand.pts[hand.pts.size() - 2];
                          hand.pts.push_back(prev + curve);
-                         hand.pts.push_back(mouse + curve);
+                         hand.pts.push_back(pos + curve);
                      }
                  }
-                 hand.pts.push_back(mouse);
+                 hand.pts.push_back(pos);
              } else {
                  selected = &hand;
                  hit_data = (void*)(intptr_t)close_i;
@@ -76,25 +76,25 @@ class DrawToy: public Toy {
         }
     }
 
-    void mouse_moved(GdkEventMotion* e) override {
-        Geom::Point mouse(e->x, e->y);
-        
-        if(e->state & (GDK_BUTTON1_MASK) && selected != NULL) {
+    void mouse_moved(Geom::Point const &pos, unsigned modifiers) override
+    {
+        if (modifiers & (GDK_BUTTON1_MASK) && selected) {
             // NOTE this is completely broken.
             int hd = 0;
             if (hd % 3 == 0) {
-                Geom::Point diff = mouse - hand.pts[hd];
+                Geom::Point diff = pos - hand.pts[hd];
                 if(int(hand.pts.size() - 1) > hd) hand.pts[hd + 1] += diff;
                 if(hd != 0) hand.pts[hd - 1] += diff; 
             }
-            Toy::mouse_moved(e);
+            Toy::mouse_moved(pos, modifiers);
         }
     }
 
     bool should_draw_numbers() override { return false; }
-public:
-    DrawToy() {
 
+public:
+    DrawToy()
+    {
         handles.push_back(&hand);
     }
 };

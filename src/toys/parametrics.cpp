@@ -164,12 +164,12 @@ class Parametrics: public Toy {
     }
 
 #ifdef USE_TIME
-    virtual void mouse_moved(GdkEventMotion* e) {
+    virtual void mouse_moved(Geom::Point const &pos, unsigned modifiers) {
         if(st) {
             g_timer_start(time);
             st = false;
         }
-        Toy::mouse_moved(e);
+        Toy::mouse_moved(pos, modifiers);
     }
 #endif
 

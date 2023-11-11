@@ -310,9 +310,9 @@ class LineToy : public Toy
         }
     }
 
-    void key_hit(GdkEventKey *e) override
+    void key_hit(unsigned keyval, unsigned modifiers) override
     {
-        char choice = std::toupper(e->keyval);
+        char choice = std::toupper(keyval);
         switch ( choice )
         {
             case 'A':

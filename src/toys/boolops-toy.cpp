@@ -156,9 +156,9 @@ public:
         Toy::draw(cr, notify, width, height, save,timer_stream);
     }
 
-    void mouse_pressed(GdkEventButton* e) override {
-        toggle_events(togs, e);
-        Toy::mouse_pressed(e);
+    void mouse_pressed(Geom::Point const &pos, unsigned button, unsigned modifiers) override {
+        toggle_events(togs, pos, button);
+        Toy::mouse_pressed(pos, button, modifiers);
     }
 
     void first_time(int argc, char** argv) override {

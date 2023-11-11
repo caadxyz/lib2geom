@@ -7,6 +7,7 @@
 #include <cairo.h>
 #include <gtk/gtk.h>
 #include <iostream>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -73,7 +74,7 @@ public:
     void draw(cairo_t *cr, bool annotes = false) override;
     void toggle();
     void set(bool state);
-    void handle_click(GdkEventButton* e);
+    void handle_click(Geom::Point const &pos, unsigned button);
     void* hit(Geom::Point pos) override;
     void move_to(void* /*hit*/, Geom::Point /*om*/, Geom::Point /*m*/) override { /* not implemented */ }
     void load(FILE* /*f*/) override { /* not implemented */ }
@@ -330,13 +331,13 @@ public:
 
     virtual void draw(cairo_t *cr, std::ostringstream *notify, int w, int h, bool save, std::ostringstream *timing_stream);
 
-    virtual void mouse_moved(GdkEventMotion* e);
-    virtual void mouse_pressed(GdkEventButton* e);
-    virtual void mouse_released(GdkEventButton* e);
+    virtual void mouse_moved(Geom::Point const &pos, unsigned modifiers);
+    virtual void mouse_pressed(Geom::Point const &pos, unsigned button, unsigned modifiers);
+    virtual void mouse_released(Geom::Point const &pos, unsigned button, unsigned modifiers);
     virtual void canvas_click(Geom::Point at, int button);
-    virtual void scroll(GdkEventScroll* e);
+    virtual void scroll(GdkScrollDirection dir, Geom::Point const &delta);
 
-    virtual void key_hit(GdkEventKey */*e*/) {}
+    virtual void key_hit(unsigned keyval, unsigned modifiers) {}
 
     //Cheapo way of informing the framework what the toy would like drawn for it.
     virtual bool should_draw_numbers() { return true; }
@@ -354,10 +355,10 @@ void redraw();
 void take_screenshot(const char* file);
 void init(int argc, char **argv, Toy *t, int width=600, int height=600);
 
-void toggle_events(std::vector<Toggle> &ts, GdkEventButton* e);
+void toggle_events(std::vector<Toggle> &ts, Geom::Point const &pos, unsigned button);
 void draw_toggles(cairo_t *cr, std::vector<Toggle> &ts);
 Geom::Point read_point(FILE* f);
-
+void get_clipboard_text(std::function<void (char const *)> &&on_completion);
 
 
 

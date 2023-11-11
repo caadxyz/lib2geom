@@ -534,16 +534,16 @@ public:
         }
     }
     
-    void key_hit(GdkEventKey *e) override {
-        if(e->keyval == 'w') toggles[0].toggle(); else
-        if(e->keyval == 'a') toggles[1].toggle(); else
-        if(e->keyval == 'q') toggles[2].toggle(); else
-        if(e->keyval == 's') toggles[3].toggle();
+    void key_hit(unsigned keyval, unsigned modifiers) override {
+        if(keyval == 'w') toggles[0].toggle(); else
+        if(keyval == 'a') toggles[1].toggle(); else
+        if(keyval == 'q') toggles[2].toggle(); else
+        if(keyval == 's') toggles[3].toggle();
         redraw();
     }
-    void mouse_pressed(GdkEventButton* e) override {
-        toggle_events(toggles, e);
-        Toy::mouse_pressed(e);
+    void mouse_pressed(Geom::Point const &pos, unsigned button, unsigned modifiers) override {
+        toggle_events(toggles, pos, button);
+        Toy::mouse_pressed(pos, button, modifiers);
     }
     void draw(cairo_t *cr, std::ostringstream *notify, int width, int height, bool save, std::ostringstream *timer_stream) override {
         cairo_set_source_rgba (cr, 0., 0., 0, 1);

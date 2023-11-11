@@ -161,7 +161,7 @@ void draw_number(cairo_t *cr, Geom::Point pos, double num, std::string name, boo
 }
 
 //Framework Accessors
-void redraw() { gtk_widget_queue_draw(GTK_WIDGET(the_window)); }
+void redraw() { gtk_widget_queue_draw(the_canvas); }
 
 void Toy::draw(cairo_t *cr, std::ostringstream *notify, int width, int height, bool /*save*/, std::ostringstream *timer_stream)
 {
@@ -208,53 +208,52 @@ void Toy::draw(cairo_t *cr, std::ostringstream *notify, int width, int height, b
     }
 }
 
-void Toy::mouse_moved(GdkEventMotion* e)
+void Toy::mouse_moved(Geom::Point const &pos, unsigned modifiers)
 {
-    Geom::Point mouse(e->x, e->y);
-
-    if(e->state & (GDK_BUTTON1_MASK | GDK_BUTTON3_MASK)) {
-        if(selected)
-	    selected->move_to(hit_data, old_mouse_point, mouse);
+    if (modifiers & (GDK_BUTTON1_MASK | GDK_BUTTON3_MASK)) {
+        if (selected) {
+            selected->move_to(hit_data, old_mouse_point, pos);
+        }
     }
-    old_mouse_point = mouse;
+    old_mouse_point = pos;
     redraw();
 }
 
-void Toy::mouse_pressed(GdkEventButton* e) {
-    Geom::Point mouse(e->x, e->y);
-    selected = NULL;
-    hit_data = NULL;
-    canvas_click_button = e->button;
-    if(e->button == 1) {
-        for(auto & handle : handles) {
-    	    void * hit = handle->hit(mouse);
-    	    if(hit) {
-    		selected = handle;
-    		hit_data = hit;
+void Toy::mouse_pressed(Geom::Point const &pos, unsigned button, unsigned modifiers)
+{
+    selected = nullptr;
+    hit_data = nullptr;
+    canvas_click_button = button;
+    if (button == 1) {
+        for (auto &handle : handles) {
+            if (auto hit = handle->hit(pos)) {
+                selected = handle;
+                hit_data = hit;
     	    }
         }
         mouse_down = true;
     }
-    old_mouse_point = mouse;
+    old_mouse_point = pos;
     redraw();
 }
 
-void Toy::scroll(GdkEventScroll* /*e*/) {
+void Toy::scroll(GdkScrollDirection dir, Geom::Point const &delta) {
 }
 
 void Toy::canvas_click(Geom::Point at, int button) {
 }
 
-void Toy::mouse_released(GdkEventButton* e) {
-    if(selected == NULL) {
-        Geom::Point mouse(e->x, e->y);
-        canvas_click(mouse, canvas_click_button);
+void Toy::mouse_released(Geom::Point const &pos, unsigned button, unsigned modifiers)
+{
+    if (!selected) {
+        canvas_click(pos, canvas_click_button);
         canvas_click_button = 0;
     }
-    selected = NULL;
-    hit_data = NULL;
-    if(e->button == 1)
-	mouse_down = false;
+    selected = nullptr;
+    hit_data = nullptr;
+    if (button == 1) {
+        mouse_down = false;
+    }
     redraw();
 }
 
@@ -277,16 +276,17 @@ void Toy::save(FILE* f) {
 //Gui Event Callbacks
 
 void show_about_dialog(GSimpleAction *, GVariant *, gpointer) {
-    GtkWidget* about_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    GtkWidget* about_window = gtk_window_new();
     gtk_window_set_title(GTK_WINDOW(about_window), "About");
     gtk_window_set_resizable(GTK_WINDOW(about_window), FALSE);
 
     GtkWidget* about_text = gtk_text_view_new();
     GtkTextBuffer* buf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(about_text));
     gtk_text_buffer_set_text(buf, "Toy lib2geom application", -1);
-    gtk_container_add(GTK_CONTAINER(about_window), about_text);
+    gtk_text_view_set_editable(GTK_TEXT_VIEW(about_text), FALSE);
+    gtk_window_set_child(GTK_WINDOW(about_window), about_text);
 
-    gtk_widget_show_all(about_window);
+    gtk_window_present(GTK_WINDOW(about_window));
 }
 
 void quit(GSimpleAction *, GVariant *, gpointer) {
@@ -300,6 +300,21 @@ Geom::Point read_point(FILE* f) {
     return p;
 }
 
+void get_clipboard_text(std::function<void (char const *)> &&on_completion)
+{
+    using Closure = std::function<void (char const *)>;
+    auto clipboard = gtk_widget_get_clipboard(the_canvas);
+    auto closure = new Closure(std::move(on_completion));
+    gdk_clipboard_read_text_async(clipboard, nullptr, +[] (GObject *source_object, GAsyncResult *res, gpointer data) {
+        auto clipboard = GDK_CLIPBOARD(source_object);
+        auto closure = reinterpret_cast<Closure *>(data);
+        auto str = gdk_clipboard_read_text_finish(clipboard, res, nullptr);
+        closure->operator()(str);
+        g_free(str);
+        delete closure;
+    }, closure);
+}
+
 Geom::Interval read_interval(FILE* f) {
     Geom::Interval p;
     Geom::Coord a, b;
@@ -309,95 +324,127 @@ Geom::Interval read_interval(FILE* f) {
     return p;
 }
 
-void open_handles(GSimpleAction *, GVariant *, gpointer) {
-    if (!the_toy) return;
-	GtkWidget* d = gtk_file_chooser_dialog_new(
-	     "Open handle configuration", GTK_WINDOW(the_window), GTK_FILE_CHOOSER_ACTION_OPEN,
-         "Cancel", GTK_RESPONSE_CANCEL, "Open", GTK_RESPONSE_ACCEPT, nullptr);
-    if (gtk_dialog_run(GTK_DIALOG(d)) == GTK_RESPONSE_ACCEPT) {
-        const char* filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(d));
-        FILE* f = fopen(filename, "r");
-        the_toy->load(f);
-        fclose(f);
-    }
-    gtk_widget_destroy(d);
+void open_handles_cb(GObject *source_object, GAsyncResult *res, gpointer data)
+{
+    auto d = GTK_FILE_DIALOG(source_object);
+    auto file = gtk_file_dialog_open_finish(d, res, nullptr);
+    g_object_unref(d);
+    if (!file) return;
+
+    auto filename = g_file_get_path(file);
+    g_object_unref(file);
+
+    auto f = fopen(filename, "r");
+    g_free(filename);
+
+    the_toy->load(f);
+    fclose(f);
+
+    redraw();
 }
 
-void save_handles(GSimpleAction *, GVariant *, gpointer) {
+void open_handles(GSimpleAction *, GVariant *, gpointer)
+{
     if (!the_toy) return;
-    GtkWidget* d = gtk_file_chooser_dialog_new(
-         "Save handle configuration", GTK_WINDOW(the_window), GTK_FILE_CHOOSER_ACTION_SAVE,
-         "Cancel", GTK_RESPONSE_CANCEL, "Save", GTK_RESPONSE_ACCEPT, nullptr);
-    if (gtk_dialog_run(GTK_DIALOG(d)) == GTK_RESPONSE_ACCEPT) {
-        const char* filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(d));
-        FILE* f = fopen(filename, "w");
-        the_toy->save(f);
-        fclose(f);
-    }
-    gtk_widget_destroy(d);
+    auto d = gtk_file_dialog_new();
+    gtk_file_dialog_set_title(d, "Open handle configuration");
+    gtk_file_dialog_open(d, GTK_WINDOW(the_window), nullptr, open_handles_cb, nullptr);
 }
 
-void write_image(const char* filename) {
-    cairo_surface_t* cr_s;
-    unsigned l = strlen(filename);
-    int width = gdk_window_get_width(gtk_widget_get_window(the_canvas));
-    int height = gdk_window_get_height(gtk_widget_get_window(the_canvas));
+void save_handles_cb(GObject *source_object, GAsyncResult *res, gpointer data)
+{
+    auto d = GTK_FILE_DIALOG(source_object);
+    auto file = gtk_file_dialog_save_finish(d, res, nullptr);
+    g_object_unref(d);
+    if (!file) return;
+
+    auto filename = g_file_get_path(file);
+    g_object_unref(file);
+
+    auto f = fopen(filename, "w");
+    g_free(filename);
+
+    the_toy->save(f);
+    fclose(f);
+}
+
+void save_handles(GSimpleAction *, GVariant *, gpointer)
+{
+    if (!the_toy) return;
+    auto d = gtk_file_dialog_new();
+    gtk_file_dialog_set_title(d, "Save handle configuration");
+    gtk_file_dialog_save(d, GTK_WINDOW(the_window), nullptr, save_handles_cb, nullptr);
+}
+
+void write_image(char const *filename)
+{
+    int width = gtk_widget_get_width(the_canvas);
+    int height = gtk_widget_get_height(the_canvas);
+
+    cairo_surface_t *s;
     bool save_png = false;
 
+    unsigned l = strlen(filename);
     if (l >= 4 && strcmp(filename + l - 4, ".png") == 0) {
-        cr_s = cairo_image_surface_create ( CAIRO_FORMAT_ARGB32, width, height );
+        s = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
         save_png = true;
     }
-
 #if CAIRO_HAS_PDF_SURFACE
-    else if (l >= 4 && strcmp(filename + l - 4, ".pdf") == 0)
-        cr_s = cairo_pdf_surface_create(filename, width, height);
+    else if (l >= 4 && strcmp(filename + l - 4, ".pdf") == 0) {
+        s = cairo_pdf_surface_create(filename, width, height);
+    }
 #endif
 #if CAIRO_HAS_SVG_SURFACE
-#if CAIRO_HAS_PDF_SURFACE
-    else
-#endif
-        cr_s = cairo_svg_surface_create(filename, width, height);
-#endif
-    cairo_t* cr = cairo_create(cr_s);
-
-    if(save_png) {
-        cairo_save(cr);
-        cairo_set_source_rgb(cr, 1,1,1);
-        cairo_paint(cr);
-        cairo_restore(cr);
+    else if (true) {
+        s = cairo_svg_surface_create(filename, width, height);
     }
-    if(the_toy != NULL) {
-        std::ostringstream * notify = new std::ostringstream;
-        std::ostringstream * timer_stream = new std::ostringstream;
-        the_toy->draw(cr, notify, width, height, true, timer_stream);
-        delete notify;
-        delete timer_stream;
+#endif
+    else {
+        return;
+    }
+
+    auto cr = cairo_create(s);
+
+    if (save_png) {
+        cairo_set_source_rgb(cr, 1, 1, 1);
+        cairo_paint(cr);
+    }
+
+    if (the_toy) {
+        std::ostringstream notify, timer_stream;
+        the_toy->draw(cr, &notify, width, height, true, &timer_stream);
     }
 
     cairo_show_page(cr);
-    if(save_png)
-        cairo_surface_write_to_png(cr_s, filename);
-    cairo_destroy (cr);
-    cairo_surface_destroy (cr_s);
-}
+    cairo_destroy(cr);
 
-void save_cairo(GSimpleAction *, GVariant *, gpointer) {
-    GtkWidget* d = gtk_file_chooser_dialog_new(
-        "Save file as svg, pdf or png", GTK_WINDOW(the_window), GTK_FILE_CHOOSER_ACTION_SAVE,
-        "Cancel", GTK_RESPONSE_CANCEL, "Save", GTK_RESPONSE_ACCEPT, nullptr);
-    if (gtk_dialog_run(GTK_DIALOG(d)) == GTK_RESPONSE_ACCEPT) {
-        const gchar *filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(d));
-        write_image(filename);
+    if (save_png) {
+        cairo_surface_write_to_png(s, filename);
     }
-    gtk_widget_destroy(d);
+
+    cairo_surface_destroy(s);
 }
 
-static gint delete_event(GtkWidget*, GdkEventAny*, gpointer) {
-    quit(nullptr, nullptr, nullptr);
-    return FALSE;
+void save_cairo_cb(GObject *source_object, GAsyncResult *res, gpointer data)
+{
+    auto d = GTK_FILE_DIALOG(source_object);
+    auto file = gtk_file_dialog_save_finish(d, res, nullptr);
+    g_object_unref(d);
+    if (!file) return;
+
+    auto filename = g_file_get_path(file);
+    g_object_unref(file);
+
+    write_image(filename);
+    g_free(filename);
 }
 
+void save_cairo(GSimpleAction *, GVariant *, gpointer)
+{
+    auto d = gtk_file_dialog_new();
+    gtk_file_dialog_set_title(d, "Save file as svg, pdf or png");
+    gtk_file_dialog_save(d, GTK_WINDOW(the_window), nullptr, save_cairo_cb, nullptr);
+}
 
 static void toggle_action(GSimpleAction *action, GVariant *, gpointer) {
     GVariant *state = g_action_get_state(G_ACTION(action));
@@ -410,93 +457,76 @@ static void set_show_timings(GSimpleAction *action, GVariant *variant, gpointer)
     g_simple_action_set_state(action, variant);
 }
 
-static gboolean draw_callback(GtkWidget *widget, cairo_t *cr)
+static void draw_callback(GtkDrawingArea *drawing_area, cairo_t *cr, int width, int height, gpointer user_data)
 {
-    int width = gdk_window_get_width(gtk_widget_get_window(widget));
-    int height = gdk_window_get_height(gtk_widget_get_window(widget));
+    auto const size = Geom::IntPoint{width, height};
 
-    std::ostringstream notify;
-
-    static bool resized = false;
-    if(!resized) {
-	Geom::Rect alloc_size(Geom::Interval(0, width),
-			      Geom::Interval(0, height));
-	if(the_toy != NULL)
-	    the_toy->resize_canvas(alloc_size);
-	resized = true;
+    static std::optional<Geom::IntPoint> old_size;
+    if (size != old_size) {
+        old_size = size;
+        if (the_toy) {
+            the_toy->resize_canvas({{}, size});
+        }
     }
+
     cairo_rectangle(cr, 0, 0, width, height);
     cairo_set_source_rgba(cr,1,1,1,1);
     cairo_fill(cr);
-    if (the_toy != NULL) {
-        std::ostringstream * timer_stream = new std::ostringstream;
+
+    if (the_toy) {
+        std::ostringstream notify, timer;
         
         if (the_toy->spool_file) {
             the_toy->save(the_toy->spool_file);
         }
 
-        the_toy->draw(cr, &notify, width, height, false, timer_stream);
-        delete timer_stream;
+        the_toy->draw(cr, &notify, width, height, false, &timer);
     }
-
-    return TRUE;
 }
 
-static gint mouse_motion_event(GtkWidget* widget, GdkEventMotion* e, gpointer data) {
-    (void)(data);
-    (void)(widget);
+static void mouse_motion_event(GtkEventControllerMotion *self, double x, double y, gpointer user_data)
+{
+    if (the_toy) {
+        the_toy->mouse_moved({x, y},
+                             gtk_event_controller_get_current_event_state(GTK_EVENT_CONTROLLER(self)));
+    }
+}
 
-    if(the_toy != NULL) the_toy->mouse_moved(e);
+static void mouse_press_event(GtkGestureClick *self, int n_press, double x, double y, gpointer user_data)
+{
+    if (the_toy) {
+        the_toy->mouse_pressed({x, y},
+                               gtk_gesture_single_get_current_button(GTK_GESTURE_SINGLE(self)),
+                               gtk_event_controller_get_current_event_state(GTK_EVENT_CONTROLLER(self)));
+    }
+}
 
+static gboolean scroll_event(GtkEventControllerScroll *self, double dx, double dy, gpointer user_data)
+{
+    if (the_toy) {
+        auto ev = gtk_event_controller_get_current_event(GTK_EVENT_CONTROLLER(self));
+        auto dir = gdk_scroll_event_get_direction(ev);
+        the_toy->scroll(dir, {dx, dy});
+    }
     return FALSE;
 }
 
-static gint mouse_event(GtkWidget* widget, GdkEventButton* e, gpointer data) {
-    (void)(data);
-    (void)(widget);
-
-    if(the_toy != NULL) the_toy->mouse_pressed(e);
-
-    return FALSE;
+static void mouse_release_event(GtkGestureClick *self, int n_press, double x, double y, gpointer user_data)
+{
+    if (the_toy) {
+        the_toy->mouse_released({x, y},
+                                gtk_gesture_single_get_current_button(GTK_GESTURE_SINGLE(self)),
+                                gtk_event_controller_get_current_event_state(GTK_EVENT_CONTROLLER(self)));
+    }
 }
 
-static gint scroll_event(GtkWidget* widget, GdkEventScroll* e, gpointer data) {
-    (void)(data);
-    (void)(widget);
-    if(the_toy != NULL) the_toy->scroll(e);
-
+static gboolean key_press_event(GtkEventControllerKey *self, unsigned keyval, unsigned keycode, GdkModifierType state, gpointer user_data)
+{
+    if (the_toy) {
+        the_toy->key_hit(keyval, state);
+    }
     return FALSE;
 }
-
-static gint mouse_release_event(GtkWidget* widget, GdkEventButton* e, gpointer data) {
-    (void)(data);
-    (void)(widget);
-
-    if(the_toy != NULL) the_toy->mouse_released(e);
-
-    return FALSE;
-}
-
-static gint key_press_event(GtkWidget *widget, GdkEventKey *e, gpointer data) {
-    (void)(data);
-    (void)(widget);
-
-    if(the_toy != NULL) the_toy->key_hit(e);
-
-    return FALSE;
-}
-
-static gint size_allocate_event(GtkWidget* widget, GtkAllocation *allocation, gpointer data) {
-    (void)(data);
-    (void)(widget);
-
-    Geom::Rect alloc_size(Geom::Interval(allocation->x, allocation->x+ allocation->width),
-			  Geom::Interval(allocation->y, allocation->y+allocation->height));
-    if(the_toy != NULL) the_toy->resize_canvas(alloc_size);
-
-    return FALSE;
-}
-
 
 const char *the_builder_xml = R"xml(
 <?xml version="1.0" encoding="UTF-8"?>
@@ -506,17 +536,17 @@ const char *the_builder_xml = R"xml(
       <attribute name="label">File</attribute>
       <section>
         <item>
-          <attribute name="label">Open Handles...</attribute>
+          <attribute name="label">Open Handles</attribute>
           <attribute name="action">app.open-handles</attribute>
         </item>
         <item>
-          <attribute name="label">Save Handles...</attribute>
+          <attribute name="label">Save Handles</attribute>
           <attribute name="action">app.save-handles</attribute>
         </item>
       </section>
       <section>
         <item>
-          <attribute name="label">Save as SVG of PDF...</attribute>
+          <attribute name="label">Save as PNG, SVG or PDF</attribute>
           <attribute name="action">app.save-image</attribute>
         </item>
       </section>
@@ -534,7 +564,7 @@ const char *the_builder_xml = R"xml(
     <submenu>
       <attribute name="label">Help</attribute>
       <item>
-        <attribute name="label">About...</attribute>
+        <attribute name="label">About</attribute>
         <attribute name="action">app.about</attribute>
       </item>
     </submenu>
@@ -629,26 +659,33 @@ static void activate(GApplication *app, gpointer) {
 
     the_window = GTK_APPLICATION_WINDOW(gtk_application_window_new(GTK_APPLICATION(g_application_get_default())));
     gtk_window_set_title(GTK_WINDOW(the_window), the_toy->name.c_str());
-    g_signal_connect(G_OBJECT(the_window), "delete_event", G_CALLBACK(delete_event), NULL);
+    gtk_application_window_set_show_menubar(the_window, TRUE);
 
     the_canvas = gtk_drawing_area_new();
-    gtk_widget_add_events(the_canvas, (GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_KEY_PRESS_MASK | GDK_POINTER_MOTION_MASK | GDK_SCROLL_MASK));
-    g_signal_connect(G_OBJECT(the_canvas), "draw", G_CALLBACK(draw_callback), 0);
-    g_signal_connect(G_OBJECT(the_canvas), "scroll-event", G_CALLBACK(scroll_event), 0);
-    g_signal_connect(G_OBJECT(the_canvas), "button-press-event", G_CALLBACK(mouse_event), 0);
-    g_signal_connect(G_OBJECT(the_canvas), "button-release-event", G_CALLBACK(mouse_release_event), 0);
-    g_signal_connect(G_OBJECT(the_canvas), "motion-notify-event", G_CALLBACK(mouse_motion_event), 0);
-    g_signal_connect(G_OBJECT(the_canvas), "key-press-event", G_CALLBACK(key_press_event), 0);
-    g_signal_connect(G_OBJECT(the_canvas), "size-allocate", G_CALLBACK(size_allocate_event), 0);
+    gtk_drawing_area_set_draw_func(GTK_DRAWING_AREA(the_canvas), draw_callback, nullptr, nullptr);
 
-    gtk_container_add(GTK_CONTAINER(the_window), the_canvas);
+    auto scroll = gtk_event_controller_scroll_new(GTK_EVENT_CONTROLLER_SCROLL_BOTH_AXES);
+    g_signal_connect(scroll, "scroll", G_CALLBACK(scroll_event), nullptr);
+    gtk_widget_add_controller(the_canvas, scroll);
+
+    auto click = gtk_gesture_click_new();
+    gtk_gesture_single_set_button(GTK_GESTURE_SINGLE(click), 0);
+    g_signal_connect(click, "pressed", G_CALLBACK(mouse_press_event), nullptr);
+    g_signal_connect(click, "released", G_CALLBACK(mouse_release_event), nullptr);
+    gtk_widget_add_controller(the_canvas, GTK_EVENT_CONTROLLER(click));
+
+    auto motion = gtk_event_controller_motion_new();
+    g_signal_connect(motion, "motion", G_CALLBACK(mouse_motion_event), nullptr);
+    gtk_widget_add_controller(the_canvas, motion);
+
+    auto key = gtk_event_controller_key_new();
+    g_signal_connect(key, "key-pressed", G_CALLBACK(key_press_event), nullptr);
+    gtk_widget_add_controller(GTK_WIDGET(the_window), key);
+
+    gtk_window_set_child(GTK_WINDOW(the_window), the_canvas);
     gtk_window_set_default_size(GTK_WINDOW(the_window), the_requested_width, the_requested_height);
-    gtk_widget_show_all(GTK_WIDGET(the_window));
 
-    // Make sure the canvas can receive key press events.
-    gtk_widget_set_can_focus(the_canvas, TRUE);
-    gtk_widget_grab_focus(the_canvas);
-    assert(gtk_widget_is_focus(the_canvas));
+    gtk_window_present(GTK_WINDOW(the_window));
 }
 
 void Toggle::draw(cairo_t *cr, bool /*annotes*/) {
@@ -675,8 +712,11 @@ void Toggle::set(bool state) {
 }
 
 
-void Toggle::handle_click(GdkEventButton* e) {
-    if(bounds.contains(Geom::Point(e->x, e->y)) && e->button == 1) toggle();
+void Toggle::handle_click(Geom::Point const &pos, unsigned button)
+{
+    if (bounds.contains(pos) && button == 1) {
+        toggle();
+    }
 }
 
 void* Toggle::hit(Geom::Point mouse)
@@ -689,8 +729,11 @@ void* Toggle::hit(Geom::Point mouse)
     return 0;
 }
 
-void toggle_events(std::vector<Toggle> &ts, GdkEventButton* e) {
-    for(auto & t : ts) t.handle_click(e);
+void toggle_events(std::vector<Toggle> &ts, Geom::Point const &pos, unsigned button)
+{
+    for (auto &t : ts) {
+        t.handle_click(pos, button);
+    }
 }
 
 void draw_toggles(cairo_t *cr, std::vector<Toggle> &ts) {
