@@ -740,7 +740,7 @@ public:
     void setFinal(Point const &p) {
         _unshare();
         _closed = false;
-        _data->curves[size_open() - 1].setFinal(p);
+        _data->curves[size_open() ? size_open() - 1 : 0].setFinal(p);
         _closing_seg->setInitial(p);
     }
 
