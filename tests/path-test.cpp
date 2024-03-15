@@ -38,6 +38,7 @@ protected:
         p_closed = p_open;
         p_closed.close(true);
         p_add = string_to_path("M -1,6 L 6,6");
+        p_single = string_to_path("M 0,0");
 
         p_open.setStitching(true);
         p_closed.setStitching(true);
@@ -45,7 +46,7 @@ protected:
 
     // Objects declared here can be used by all tests in the test case for Foo.
     Path line, square, circle, arcs, diederik, cmds;
-    Path p_open, p_closed, p_add;
+    Path p_open, p_closed, p_add, p_single;
 };
 
 TEST_F(PathTest, CopyConstruction) {
@@ -977,6 +978,32 @@ TEST_F(PathTest, PizzaSlice)
     EXPECT_NO_THROW(piece = pv[0].portion(PathTime(1, 0.75), PathTime(1, 0.25)));
     EXPECT_FALSE(piece.closed());
     EXPECT_EQ(piece.size(), 1);
+}
+
+TEST_F(PathTest, SetFinal) {
+    constexpr auto pt = Point(4, 4);
+
+    auto path = p_single;
+    path.setFinal(pt);
+    EXPECT_EQ(path.finalPoint(), pt);
+
+    path = line;
+    path.setFinal(pt);
+    EXPECT_EQ(path.finalPoint(), pt);
+    EXPECT_EQ(path.initialPoint(), line.initialPoint());
+}
+
+TEST_F(PathTest, SetInitial) {
+    constexpr auto pt = Point(4, 4);
+
+    auto path = p_single;
+    path.setInitial(pt);
+    EXPECT_EQ(path.initialPoint(), pt);
+
+    path = line;
+    path.setInitial(pt);
+    EXPECT_EQ(path.initialPoint(), pt);
+    EXPECT_EQ(path.finalPoint(), line.finalPoint());
 }
 
 /*
