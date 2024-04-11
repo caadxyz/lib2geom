@@ -124,6 +124,16 @@ OPTION(2GEOM_TOYS_LPE
   "Build Inkscape Live Path Effect (LPE) Toy files"
   ON)
 IF(2GEOM_TOYS_LPE)
+    link_directories("/opt/homebrew/opt/gsl/lib")
+        link_directories("/opt/homebrew/opt/gtk4/lib")
+        link_directories("/opt/homebrew/opt/pango/lib")
+        link_directories("/opt/homebrew/opt/harfbuzz/lib")
+        link_directories("/opt/homebrew/opt/gdk-pixbuf/lib")
+        link_directories("/opt/homebrew/opt/graphene/lib")
+        link_directories("/opt/homebrew/opt/glib/lib")
+        link_directories("/opt/homebrew/opt/gettext/lib")
+	
+
     # make lib for lpetoy
     add_library(lpetoy ${LIB_TYPE} ${2GEOM_LPE_TOY_FRAMEWORK_SRC})
     target_include_directories(lpetoy PUBLIC ${GTK4_INCLUDE_DIRS})
@@ -143,6 +153,7 @@ OPTION(2GEOM_TOYS
   "Build the projects Toy files"
   ON)
 IF(2GEOM_TOYS)
+ 
     # make lib for toy
     ADD_LIBRARY(toy-2 ${LIB_TYPE} ${2GEOM_TOY-FRAMEWORK-2_SRC})
     target_include_directories(toy-2 PUBLIC ${GTK4_INCLUDE_DIRS})
@@ -152,7 +163,7 @@ IF(2GEOM_TOYS)
     endif()
 
     FOREACH(source ${2GEOM_TOYS-2_SRC})
-        IF(${source} STREQUAL aa)
+           IF(${source} STREQUAL aa)
             ADD_EXECUTABLE(${source} EXCLUDE_FROM_ALL ${source}.cpp)
             TARGET_LINK_LIBRARIES(${source} affa)
         ELSEIF(${source} STREQUAL ineaa)
