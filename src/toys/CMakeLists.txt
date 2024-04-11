@@ -124,7 +124,8 @@ OPTION(2GEOM_TOYS_LPE
   "Build Inkscape Live Path Effect (LPE) Toy files"
   ON)
 IF(2GEOM_TOYS_LPE)
-    link_directories("/opt/homebrew/opt/gsl/lib")
+    if(APPLE)
+        link_directories("/opt/homebrew/opt/gsl/lib")
         link_directories("/opt/homebrew/opt/gtk4/lib")
         link_directories("/opt/homebrew/opt/pango/lib")
         link_directories("/opt/homebrew/opt/harfbuzz/lib")
@@ -132,7 +133,7 @@ IF(2GEOM_TOYS_LPE)
         link_directories("/opt/homebrew/opt/graphene/lib")
         link_directories("/opt/homebrew/opt/glib/lib")
         link_directories("/opt/homebrew/opt/gettext/lib")
-	
+    endif()
 
     # make lib for lpetoy
     add_library(lpetoy ${LIB_TYPE} ${2GEOM_LPE_TOY_FRAMEWORK_SRC})
