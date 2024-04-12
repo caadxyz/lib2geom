@@ -123,22 +123,28 @@ lpe-test
 OPTION(2GEOM_TOYS_LPE
   "Build Inkscape Live Path Effect (LPE) Toy files"
   ON)
-IF(2GEOM_TOYS_LPE)
-    if(APPLE)
-        link_directories("/opt/homebrew/opt/gsl/lib")
-        link_directories("/opt/homebrew/opt/gtk4/lib")
-        link_directories("/opt/homebrew/opt/pango/lib")
-        link_directories("/opt/homebrew/opt/harfbuzz/lib")
-        link_directories("/opt/homebrew/opt/gdk-pixbuf/lib")
-        link_directories("/opt/homebrew/opt/graphene/lib")
-        link_directories("/opt/homebrew/opt/glib/lib")
-        link_directories("/opt/homebrew/opt/gettext/lib")
-    endif()
 
+if(APPLE AND LIB_TYPE STREQUAL "SHARED")
+    link_directories("/opt/homebrew/opt/cairo/lib")
+    link_directories("/opt/homebrew/opt/gsl/lib")
+    link_directories("/opt/homebrew/opt/gtk4/lib")
+    link_directories("/opt/homebrew/opt/pango/lib")
+    link_directories("/opt/homebrew/opt/harfbuzz/lib")
+    link_directories("/opt/homebrew/opt/gdk-pixbuf/lib")
+    link_directories("/opt/homebrew/opt/graphene/lib")
+    link_directories("/opt/homebrew/opt/glib/lib")
+    link_directories("/opt/homebrew/opt/gettext/lib")
+endif()
+
+IF(2GEOM_TOYS_LPE)
     # make lib for lpetoy
     add_library(lpetoy ${LIB_TYPE} ${2GEOM_LPE_TOY_FRAMEWORK_SRC})
     target_include_directories(lpetoy PUBLIC ${GTK4_INCLUDE_DIRS})
-    target_link_libraries(lpetoy 2Geom::2geom ${GTK4_LIBRARIES})
+    message(${CAIRO_LIBRARIES})
+    target_link_libraries(lpetoy
+        ${GTK4_LIBRARIES}
+        2Geom::2geom
+        )
     if(NOT WIN32 AND NOT APPLE)
     	target_link_libraries(lpetoy -lrt)
     endif()

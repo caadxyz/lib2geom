@@ -26,6 +26,18 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${SVG_PARSER_CPP}"
                    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${SVG_PARSER_CPP}"
                    COMMENT "Rewriting #line markers in ${SVG_PARSER_CPP}")
 
+if(APPLE AND LIB_TYPE STREQUAL "SHARED")
+    link_directories("/opt/homebrew/opt/cairo/lib")
+    link_directories("/opt/homebrew/opt/gsl/lib")
+    link_directories("/opt/homebrew/opt/gtk4/lib")
+    link_directories("/opt/homebrew/opt/pango/lib")
+    link_directories("/opt/homebrew/opt/harfbuzz/lib")
+    link_directories("/opt/homebrew/opt/gdk-pixbuf/lib")
+    link_directories("/opt/homebrew/opt/graphene/lib")
+    link_directories("/opt/homebrew/opt/glib/lib")
+    link_directories("/opt/homebrew/opt/gettext/lib")
+endif()
+
 add_library(2geom ${LIB_TYPE}
     # sources
     affine.cpp

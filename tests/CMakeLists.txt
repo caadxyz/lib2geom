@@ -38,6 +38,7 @@ self-intersections-test
 )
 
 foreach(source ${2GEOM_GTESTS_SRC})
+
     if(APPLE)
        link_directories("/opt/homebrew/opt/gsl/lib")
        link_directories("/opt/homebrew/opt/gtk4/lib")
@@ -49,6 +50,7 @@ foreach(source ${2GEOM_GTESTS_SRC})
        link_directories("/opt/homebrew/opt/glib/lib")
        link_directories("/opt/homebrew/opt/gettext/lib")
     endif()
+
 	add_executable(${source} ${source}.cpp)
 	target_include_directories(${source} PRIVATE ${GSL_INCLUDE_DIRS} ${GTK4_INCLUDE_DIRS})
 	target_link_libraries(${source} 2geom GTest::Main ${GSL_LIBRARIES} ${GTK4_LIBRARIES})

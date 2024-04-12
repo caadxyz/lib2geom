@@ -11,7 +11,7 @@ add_custom_target(perf)
 
 OPTION(2GEOM_PERFORMANCE_TESTS
   "Build the performance tests"
-  ON)
+  OFF)
 IF(2GEOM_PERFORMANCE_TESTS)
     FOREACH(source ${2GEOM_PERFORMANCE_TESTS_SRC})
         ADD_EXECUTABLE(${source} ${source}.cpp)

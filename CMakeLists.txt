@@ -115,7 +115,7 @@ endif()
 
 option(2GEOM_BUILD_SHARED
     "Build lib2geom and libtoy as shared libraries."
-    OFF)
+    ON)
 
 if(2GEOM_BUILD_SHARED)
     set(LIB_TYPE SHARED)
