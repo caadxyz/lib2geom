@@ -2,8 +2,6 @@
 #ifndef _2GEOM_TOY_FRAMEWORK2_H_
 #define _2GEOM_TOY_FRAMEWORK2_H_
 
-
-
 #include <cairo.h>
 #include <gtk/gtk.h>
 #include <iostream>
@@ -185,6 +183,7 @@ public:
 
     void* hit(Geom::Point mouse) override;
     void move_to(void* hit, Geom::Point om, Geom::Point m) override;
+
     void push_back(double x, double y) {pts.emplace_back(x,y);}
     void push_back(Geom::Point pt) {pts.push_back(pt);}
     unsigned size() {return pts.size();}
@@ -359,9 +358,6 @@ void toggle_events(std::vector<Toggle> &ts, Geom::Point const &pos, unsigned but
 void draw_toggles(cairo_t *cr, std::vector<Toggle> &ts);
 Geom::Point read_point(FILE* f);
 void get_clipboard_text(std::function<void (char const *)> &&on_completion);
-
-
-
 
 const long long NS_PER_SECOND = 1000000000LL;
 const long long NS_PER_NS = 1;

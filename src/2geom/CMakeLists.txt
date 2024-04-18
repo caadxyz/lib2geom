@@ -1,6 +1,7 @@
 # (re-)generate parser file with ragel if it's available
 SET(SVG_PARSER_CPP "svg-path-parser.cpp")
 SET(SVG_PARSER_RL  "svg-path-parser.rl")
+
 find_program(RAGEL_PROGRAM
    NAMES ragel
    HINTS /usr/bin
@@ -26,7 +27,7 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${SVG_PARSER_CPP}"
                    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${SVG_PARSER_CPP}"
                    COMMENT "Rewriting #line markers in ${SVG_PARSER_CPP}")
 
-if(APPLE AND LIB_TYPE STREQUAL "SHARED")
+if(APPLE AND LIB_TYPE STREQUAL "SHARED" )
     link_directories("/opt/homebrew/opt/cairo/lib")
     link_directories("/opt/homebrew/opt/gsl/lib")
     link_directories("/opt/homebrew/opt/gtk4/lib")

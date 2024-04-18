@@ -93,7 +93,7 @@ rect-toy
 root-finder-comparer
 #rtree-toy
 sanitize
-#sb1d
+# sb1d
 sb2d
 sb2d-solver
 sbasisdim
@@ -140,7 +140,6 @@ IF(2GEOM_TOYS_LPE)
     # make lib for lpetoy
     add_library(lpetoy ${LIB_TYPE} ${2GEOM_LPE_TOY_FRAMEWORK_SRC})
     target_include_directories(lpetoy PUBLIC ${GTK4_INCLUDE_DIRS})
-    message(${CAIRO_LIBRARIES})
     target_link_libraries(lpetoy
         ${GTK4_LIBRARIES}
         2Geom::2geom

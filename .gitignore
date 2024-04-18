@@ -42,3 +42,6 @@ install_manifest.txt
 *.sig
 
 **/.DS_Store
+
+installed/include
+installed/lib

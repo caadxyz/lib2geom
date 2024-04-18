@@ -202,6 +202,7 @@ void Toy::draw(cairo_t *cr, std::ostringstream *notify, int width, int height, b
         *notify << std::ends;
         draw_text(cr, Geom::Point(0, height-notify_offset), notify->str().c_str(), true);
     }
+
     if(show_timings) {
         *timer_stream << std::ends;
         draw_text(cr, Geom::Point(0, notify_offset), timer_stream->str().c_str(), false);
@@ -598,6 +599,7 @@ static void activate(GApplication *app, gpointer);
 static void startup(GApplication *app, gpointer);
 
 void init(int argc, char **argv, Toy* t, int width, int height) {
+
     the_toy = t;
     the_requested_width = width;
     the_requested_height = height;
@@ -668,6 +670,7 @@ static void activate(GApplication *app, gpointer) {
     g_signal_connect(scroll, "scroll", G_CALLBACK(scroll_event), nullptr);
     gtk_widget_add_controller(the_canvas, scroll);
 
+    ////////////////////////////////////////////////////////////////////////////
     auto click = gtk_gesture_click_new();
     gtk_gesture_single_set_button(GTK_GESTURE_SINGLE(click), 0);
     g_signal_connect(click, "pressed", G_CALLBACK(mouse_press_event), nullptr);
@@ -677,6 +680,8 @@ static void activate(GApplication *app, gpointer) {
     auto motion = gtk_event_controller_motion_new();
     g_signal_connect(motion, "motion", G_CALLBACK(mouse_motion_event), nullptr);
     gtk_widget_add_controller(the_canvas, motion);
+    ////////////////////////////////////////////////////////////////////////////
+
 
     auto key = gtk_event_controller_key_new();
     g_signal_connect(key, "key-pressed", G_CALLBACK(key_press_event), nullptr);

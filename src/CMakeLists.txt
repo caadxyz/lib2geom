@@ -8,3 +8,5 @@ endif()
 
 add_subdirectory(cython EXCLUDE_FROM_ALL)
 add_subdirectory(py2geom EXCLUDE_FROM_ALL)
+
+add_subdirectory(gtk101)
