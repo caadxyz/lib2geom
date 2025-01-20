@@ -31,7 +31,7 @@ include(GNUInstallDirs)
 include(CheckCXXSourceCompiles)
 
 # Find dependencies
-find_package(Boost 1.60 REQUIRED)
+find_package(Boost 1.70 REQUIRED NO_MODULE)
 find_package(DoubleConversion REQUIRED)
 find_package(PkgConfig REQUIRED)
 find_package(Cython)
@@ -45,7 +45,7 @@ if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     set(2GEOM_STANDALONE TRUE)
 endif()
 
-option(2GEOM_TESTING "Build tests" "${2GEOM_STANDALONE}")
+option(2GEOM_TESTING "Build tests" OFF)
 
 if (2GEOM_TESTING)
     enable_testing()
