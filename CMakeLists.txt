@@ -34,7 +34,6 @@ include(CheckCXXSourceCompiles)
 find_package(Boost 1.60 REQUIRED)
 find_package(DoubleConversion REQUIRED)
 find_package(PkgConfig REQUIRED)
-find_package(Cython)
 find_package(Threads)
 pkg_check_modules(GTK3 gtk+-3.0)
 pkg_check_modules(GLIB REQUIRED glib-2.0)
@@ -63,17 +62,6 @@ endif()
 if(CAIRO_FOUND)
     add_definitions(-DHAVE_CAIRO)
 endif()
-if(PYCAIRO_FOUND)
-    add_definitions(-DHAVE_PYCAIRO)
-endif()
-
-
-#    SET(NEEDS_GSL
-#        differential-constraint
-#        root-finder-comparer
-#        # contour
-#        sb-to-bez
-#    )
 
 add_compile_options(-Wall -Wformat-security -Woverloaded-virtual -Wpointer-arith -Werror=return-type)
 

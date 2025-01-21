@@ -584,7 +584,7 @@ void init(int argc, char **argv, Toy* t, int width, int height) {
     the_toy->name = argv_name;
     app_name += argv_name;
 
-    GtkApplication* app = gtk_application_new(app_name.c_str(), G_APPLICATION_DEFAULT_FLAGS);
+    GtkApplication* app = gtk_application_new(app_name.c_str(), G_APPLICATION_FLAGS_NONE);
     g_application_add_main_option_entries(G_APPLICATION(app), the_options);
     g_action_map_add_action_entries(G_ACTION_MAP(app), the_actions, G_N_ELEMENTS(the_actions), nullptr);
     g_signal_connect(G_OBJECT(app), "startup", G_CALLBACK(startup), nullptr);
