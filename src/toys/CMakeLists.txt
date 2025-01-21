@@ -114,6 +114,7 @@ sweeper-toy
 #uncross
 winding-test
 worms
+toy-template
 )
 
 SET(2GEOM_LPE_TOYS_SRC

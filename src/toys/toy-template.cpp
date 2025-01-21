@@ -2,7 +2,7 @@
 #include <2geom/sbasis.h>
 
 #include <toys/path-cairo.h>
-#include <toys/toy-framework.h>
+#include <toys/toy-framework-2.h>
 
 using namespace Geom;
 

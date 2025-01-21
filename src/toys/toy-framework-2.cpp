@@ -16,6 +16,7 @@
 
 GtkApplicationWindow* the_window = nullptr;
 static GtkWidget *the_canvas = nullptr;
+
 Toy* the_toy = nullptr;
 int the_requested_height = 0;
 int the_requested_width = 0;
@@ -616,6 +617,7 @@ void init(int argc, char **argv, Toy* t, int width, int height) {
     if (dot_pos != std::string::npos) {
         argv_name.erase(dot_pos);
     }
+
     the_toy->name = argv_name;
     app_name += argv_name;
 

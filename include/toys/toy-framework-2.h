@@ -49,16 +49,19 @@ void cairo_set_source_rgba(cairo_t* cr, colour c);
 
 class Handle{
 public:
-    std::string name;
-    float rgb[3];
     Handle() {rgb[0] = rgb[1] = rgb[2] = 0;}
     virtual ~Handle() {}
+
     virtual void draw(cairo_t *cr, bool annotes=false) = 0;
 
     virtual void* hit(Geom::Point pos) = 0;
     virtual void move_to(void* hit, Geom::Point om, Geom::Point m) = 0;
+
     virtual void load(FILE* f)=0;
     virtual void save(FILE* f)=0;
+
+    std::string name;
+    float rgb[3];
 };
 
 class Toggle : public Handle{
@@ -306,9 +309,6 @@ class Slider : public Handle
     std::string m_label;
     formatter_t m_formatter;
 };
-
-
-
 
 
 class Toy {
