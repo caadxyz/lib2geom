@@ -34,7 +34,6 @@ include(CheckCXXSourceCompiles)
 find_package(Boost 1.70 REQUIRED NO_MODULE)
 find_package(DoubleConversion REQUIRED)
 find_package(PkgConfig REQUIRED)
-find_package(Cython)
 find_package(Threads)
 pkg_check_modules(GTK4 gtk4)
 pkg_check_modules(GLIB REQUIRED glib-2.0)
@@ -45,7 +44,7 @@ if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     set(2GEOM_STANDALONE TRUE)
 endif()
 
-option(2GEOM_TESTING "Build tests" OFF)
+option(2GEOM_TESTING "Build tests" ON)
 
 if (2GEOM_TESTING)
     enable_testing()
@@ -65,17 +64,6 @@ endif()
 if(CAIRO_FOUND)
     add_definitions(-DHAVE_CAIRO)
 endif()
-if(PYCAIRO_FOUND)
-    add_definitions(-DHAVE_PYCAIRO)
-endif()
-
-
-#    SET(NEEDS_GSL
-#        differential-constraint
-#        root-finder-comparer
-#        # contour
-#        sb-to-bez
-#    )
 
 add_compile_options(-Wall -Wformat-security -Woverloaded-virtual -Wpointer-arith -Werror=return-type)
 
