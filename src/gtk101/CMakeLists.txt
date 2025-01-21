@@ -14,7 +14,17 @@ if(APPLE AND LIB_TYPE STREQUAL "SHARED")
     link_directories("/opt/homebrew/opt/gettext/lib")
 endif()
 
-include_directories( ${GTK4_INCLUDE_DIRS})
 ADD_EXECUTABLE(gtk101 ${GTK101_SRC})
-TARGET_LINK_LIBRARIES(gtk101 ${GTK4_LIBRARIES})
+TARGET_INCLUDE_DIRECTORIES(
+    gtk101
+    PRIVATE
+    ${GIO_INCLUDE_DIRS}
+    ${GLIB_INCLUDE_DIRS}
+    ${GTK4_INCLUDE_DIRS}
+)
+TARGET_LINK_LIBRARIES(
+    gtk101 
+    PRIVATE
+    ${GLIB_LIBRARIES}
+    ${GTK4_LIBRARIES})
 
