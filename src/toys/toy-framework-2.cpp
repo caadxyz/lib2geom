@@ -3,6 +3,7 @@
 #include <typeinfo>
 #include <cairo.h>
 #include <gtk/gtk.h>
+#include <glib/gtypes.h>
 #include <toys/toy-framework-2.h>
 
 #include <cairo-features.h>
@@ -597,6 +598,8 @@ static GOptionEntry const the_options[] = {
 
 static void activate(GApplication *app, gpointer);
 static void startup(GApplication *app, gpointer);
+
+/////////////////////////////main////////////////////////////////////
 
 void init(int argc, char **argv, Toy* t, int width, int height) {
 

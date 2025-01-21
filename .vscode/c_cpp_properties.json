@@ -1,0 +1,25 @@
+{
+    "configurations": [
+        {
+            "name": "Mac",
+            "includePath": [
+                "/opt/homebrew/include/**",
+                "/opt/homebrew/Cellar/boost/1.87.0/include/**",
+                "/opt/homebrew/lib/glib-2.0/include",
+                "/opt/homebrew/lib/graphene-1.0/include",
+                "${workspaceFolder}/include/**",
+                "${workspaceFolder}/include/2geom",
+                "${workspaceFolder}/**"
+            ],
+            "defines": [],
+            "macFrameworkPath": [
+                "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks"
+            ],
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "macos-clang-arm64"
+        }
+    ],
+    "version": 4
+}
