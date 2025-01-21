@@ -6,7 +6,6 @@ cmake_install.cmake
 config.h
 /Makefile
 /build
-/.vscode
 src/**/Makefile
 .ninja*
 *.ninja
