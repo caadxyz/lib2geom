@@ -567,6 +567,8 @@ static GOptionEntry const the_options[] = {
 static void activate(GApplication *app, gpointer);
 static void startup(GApplication *app, gpointer);
 
+/////////////////// main ///////////////////////////////////////////////////////
+
 void init(int argc, char **argv, Toy* t, int width, int height) {
     the_toy = t;
     the_requested_width = width;
