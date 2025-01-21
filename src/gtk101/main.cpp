@@ -1,4 +1,5 @@
 #include <gtk/gtk.h>
+#include <glib/gtypes.h>
 
 static void
 activate (GtkApplication* app,

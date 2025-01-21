@@ -2,8 +2,8 @@
 
 ## gtk tutorial
 
-* https://github.com/raspberry-cpp-tutorials/gtk-opencv-simple/wiki
-* https://docs.gtk.org/gtk4/getting_started.html
+* <https://github.com/raspberry-cpp-tutorials/gtk-opencv-simple/wiki>
+* <https://docs.gtk.org/gtk4/getting_started.html>
 
 ## What is this?
 
@@ -61,6 +61,8 @@ concentrates on higher level algorithms and geometric computations.
 
 To build 2Geom, you will need:
 
+for master branch:
+
 * C++ 20
 * [Boost](http://www.boost.org/) (headers only) 1.7+
 * [glib](https://wiki.gnome.org/Projects/GLib)
@@ -70,6 +72,15 @@ To build 2Geom, you will need:
 * [Ragel](http://www.colm.net/open-source/ragel/) (if you want to modify the SVG path parser)
 * [GTK4.16.12](http://www.gtk.org/) (for demo programs) 
 
+for gtk4_9 branch:
+
+* [Boost](http://www.boost.org/)
+* [glib](https://wiki.gnome.org/Projects/GLib)
+* [GNU Scientific Library](http://www.gnu.org/software/gsl/)
+* [double-conversion](https://github.com/google/double-conversion)
+* [cairo](https://www.cairographics.org/)
+* [Ragel](http://www.colm.net/open-source/ragel/) (if you want to modify the SVG path parser)
+* [GTK+-3.0 3.24.33](http://www.gtk.org/) (for demo programs) 
 
 ## Building
 
@@ -79,10 +90,9 @@ To build 2Geom, you will need:
     cmake ..
     make
 
-To run tests and performance tests:
+To run tests :
 
     make test
-    make perf
     
 **Note**: Tests are disabled by default. To enable tests pass `-D2GEOM_TESTING=ON` to `cmake` command.  
 
@@ -92,45 +102,7 @@ Documentation is generated from source comments using Doxygen.
 Run `doxygen` in the project root to generate documentation in
 `doc/html`.
 
-
-## API / ABI Stability
-
-Version 1.0 of 2Geom marks its first official release.  With this
-release the library's API/ABI is considered stable:
-
- * All public APIs will not be renamed or have their parameters changed
-   without providing backwards-compatible aliases.
-
- * New functionality added to these APIs will not change their meaning
-   or fundamental behaviors.
-
- * If an API needs to be removed or replaced, it will be declared
-   deprecated but will remain in the API until the next major version.
-   Warnings will be issued when the deprecated method is called.
-
- * We'll only break backwards compatibility of these APIs if a bug or
-   security hole makes it completely unavoidable.
-
-Improvements that would break the API/ABI will be noted in our bug
-tracker, for a future release.
-
-2Geom does not follow Semantic Versioning. Instead, version numbers
-match major Inkscape release versions.
-
-
-## Further information
-
-Communications related to 2Geom development happen on a
-[SourceForge mailing list](https://lists.sourceforge.net/lists/listinfo/lib2geom-devel).
-
-The primary user of 2Geom is [Inkscape](https://inkscape.org/en/).
-API-breaking changes to 2Geom will require corresponding changes to
-Inkscape.
-
-
-================
-
-http://devlib.symbian.slions.net/s3/GUID-7FD05006-09C1-4EF4-A2EB-AD98C2FA8866.html
+<http://devlib.symbian.slions.net/s3/GUID-7FD05006-09C1-4EF4-A2EB-AD98C2FA8866.html>
 
 ## GLib Event Loop
 
